@@ -17,11 +17,17 @@ func TestParser(t *testing.T) {
 	set := NewOpSet("=")
 	nameCond := p.String("name", set)
 	idCond := p.String("id", set)
+	likeCond := p.StringSlice("like", set)
 
 	v := url.Values{}
 	v.Add("name", "hello")
 	v.Add("id", "world")
-	err := p.Parse(v.Encode())
+	v.Add("like", "apple,orange, grape")
+	q, err := url.QueryUnescape(v.Encode())
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = p.Parse(q)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,6 +41,11 @@ func TestParser(t *testing.T) {
 		Key:   "id",
 		Op:    "=",
 		Value: "world",
+	})
+	mustEqual(t, likeCond, &StringSliceCondition{
+		Key:   "like",
+		Op:    "=",
+		Value: []string{"apple", "orange", "grape"},
 	})
 }
 

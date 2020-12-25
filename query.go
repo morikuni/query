@@ -83,6 +83,12 @@ func (p *Parser) String(key string, set OpSet) *StringCondition {
 	return c
 }
 
+func (p *Parser) StringSlice(key string, set OpSet) *StringSliceCondition {
+	c := new(StringSliceCondition)
+	p.condition(key, set, c)
+	return c
+}
+
 type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
@@ -97,6 +103,25 @@ func (c *StringCondition) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = string(text)
+	return nil
+}
+
+type StringSliceCondition struct {
+	Key   string
+	Op    Op
+	Value []string
+}
+
+func (c *StringSliceCondition) Set(key string, op Op, text []byte) error {
+	values := bytes.Split(text, []byte(","))
+	ss := make([]string, len(values))
+	for i, v := range values {
+		ss[i] = string(bytes.TrimSpace(v))
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = ss
 	return nil
 }
 
