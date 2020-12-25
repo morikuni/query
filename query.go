@@ -55,6 +55,7 @@ func (p *Parser) Parse(query string) error {
 func (p *Parser) parseCondition(c []byte) error {
 	c = bytes.TrimSpace(c)
 	for _, cond := range p.conditions {
+		c := c
 		if !bytes.HasPrefix(c, cond.key) {
 			continue
 		}
