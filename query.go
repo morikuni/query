@@ -120,6 +120,12 @@ func (p *Parser) Timestamp(key string, set OpSet, loc *time.Location) *Timestamp
 	return c
 }
 
+func (p *Parser) Bool(key string, set OpSet) *Bool {
+	c := new(Bool)
+	p.Condition(key, set, c)
+	return c
+}
+
 type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
@@ -210,6 +216,24 @@ func (c *Timestamp) Set(key string, op Op, text []byte) error {
 		loc = c.Location
 	}
 	ts, err := time.ParseInLocation("2006-01-02 15:04:05", string(bytes.TrimSpace(text)), loc)
+	if err != nil {
+		return err
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = ts
+	return nil
+}
+
+type Bool struct {
+	Key   string
+	Op    Op
+	Value bool
+}
+
+func (c *Bool) Set(key string, op Op, text []byte) error {
+	ts, err := strconv.ParseBool(string(text))
 	if err != nil {
 		return err
 	}

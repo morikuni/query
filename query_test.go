@@ -16,24 +16,24 @@ func TestParser(t *testing.T) {
 	p := NewParser("&")
 
 	set := NewOpSet("=")
-	name := p.String("name", set)
-	id := p.String("id", set)
-	like := p.StringSlice("like", set)
-	age := p.Int64("age", set)
+	str := p.String("str", set)
+	strs := p.StringSlice("strs", set)
+	number := p.Int64("number", set)
 	numbers := p.Int64Slice("numbers", set)
 	jst, err := time.LoadLocation("Asia/Tokyo")
 	if err != nil {
 		t.Fatal(err)
 	}
 	ts := p.Timestamp("ts", set, jst)
+	b := p.Bool("bool", set)
 
 	v := url.Values{}
-	v.Add("name", "hello")
-	v.Add("id", "world")
-	v.Add("like", "apple,orange, grape")
-	v.Add("age", " 39")
+	v.Add("str", "hello")
+	v.Add("strs", "apple,orange, grape")
+	v.Add("number", " 39")
 	v.Add("numbers", "11, 22,33")
-	v.Add("ts", "2020-12-26 14:20:33")
+	v.Add("ts", " 2020-12-26 14:20:33")
+	v.Add("bool", " true ")
 	q, err := url.QueryUnescape(v.Encode())
 	if err != nil {
 		t.Fatal(err)
@@ -43,23 +43,18 @@ func TestParser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mustEqual(t, name, &String{
-		Key:   "name",
+	mustEqual(t, str, &String{
+		Key:   "str",
 		Op:    Equal,
 		Value: "hello",
 	})
-	mustEqual(t, id, &String{
-		Key:   "id",
-		Op:    Equal,
-		Value: "world",
-	})
-	mustEqual(t, like, &StringSlice{
-		Key:   "like",
+	mustEqual(t, strs, &StringSlice{
+		Key:   "strs",
 		Op:    "=",
 		Value: []string{"apple", "orange", "grape"},
 	})
-	mustEqual(t, age, &Int64{
-		Key:   "age",
+	mustEqual(t, number, &Int64{
+		Key:   "number",
 		Op:    Equal,
 		Value: 39,
 	})
@@ -73,6 +68,11 @@ func TestParser(t *testing.T) {
 		Op:       Equal,
 		Value:    time.Date(2020, 12, 26, 14, 20, 33, 0, jst),
 		Location: jst,
+	})
+	mustEqual(t, b, &Bool{
+		Key:   "bool",
+		Op:    Equal,
+		Value: true,
 	})
 }
 
