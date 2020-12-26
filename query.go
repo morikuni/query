@@ -88,20 +88,20 @@ func (p *Parser) Condition(key string, set OpSet, c Condition) {
 	p.conditions = append(p.conditions, parseCondition{[]byte(key), set, c})
 }
 
-func (p *Parser) String(key string, set OpSet) *StringCondition {
-	c := new(StringCondition)
+func (p *Parser) String(key string, set OpSet) *String {
+	c := new(String)
 	p.Condition(key, set, c)
 	return c
 }
 
-func (p *Parser) StringSlice(key string, set OpSet) *StringSliceCondition {
-	c := new(StringSliceCondition)
+func (p *Parser) StringSlice(key string, set OpSet) *StringSlice {
+	c := new(StringSlice)
 	p.Condition(key, set, c)
 	return c
 }
 
-func (p *Parser) Int64(key string, set OpSet) *Int64Condition {
-	c := new(Int64Condition)
+func (p *Parser) Int64(key string, set OpSet) *Int64 {
+	c := new(Int64)
 	p.Condition(key, set, c)
 	return c
 }
@@ -110,26 +110,26 @@ type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
 
-type StringCondition struct {
+type String struct {
 	Key   string
 	Op    Op
 	Value string
 }
 
-func (c *StringCondition) Set(key string, op Op, text []byte) error {
+func (c *String) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = string(text)
 	return nil
 }
 
-type StringSliceCondition struct {
+type StringSlice struct {
 	Key   string
 	Op    Op
 	Value []string
 }
 
-func (c *StringSliceCondition) Set(key string, op Op, text []byte) error {
+func (c *StringSlice) Set(key string, op Op, text []byte) error {
 	values := bytes.Split(text, []byte(","))
 	ss := make([]string, len(values))
 	for i, v := range values {
@@ -142,13 +142,13 @@ func (c *StringSliceCondition) Set(key string, op Op, text []byte) error {
 	return nil
 }
 
-type Int64Condition struct {
+type Int64 struct {
 	Key   string
 	Op    Op
 	Value int64
 }
 
-func (c *Int64Condition) Set(key string, op Op, text []byte) error {
+func (c *Int64) Set(key string, op Op, text []byte) error {
 	v, err := strconv.ParseInt(string(text), 10, 64)
 	if err != nil {
 		return err

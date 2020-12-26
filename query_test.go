@@ -15,10 +15,10 @@ func TestParser(t *testing.T) {
 	p := NewParser("&")
 
 	set := NewOpSet("=")
-	nameCond := p.String("name", set)
-	idCond := p.String("id", set)
-	likeCond := p.StringSlice("like", set)
-	ageCond := p.Int64("age", set)
+	name := p.String("name", set)
+	id := p.String("id", set)
+	like := p.StringSlice("like", set)
+	age := p.Int64("age", set)
 
 	v := url.Values{}
 	v.Add("name", "hello")
@@ -34,22 +34,22 @@ func TestParser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mustEqual(t, nameCond, &StringCondition{
+	mustEqual(t, name, &String{
 		Key:   "name",
 		Op:    "=",
 		Value: "hello",
 	})
-	mustEqual(t, idCond, &StringCondition{
+	mustEqual(t, id, &String{
 		Key:   "id",
 		Op:    "=",
 		Value: "world",
 	})
-	mustEqual(t, likeCond, &StringSliceCondition{
+	mustEqual(t, like, &StringSlice{
 		Key:   "like",
 		Op:    "=",
 		Value: []string{"apple", "orange", "grape"},
 	})
-	mustEqual(t, ageCond, &Int64Condition{
+	mustEqual(t, age, &Int64{
 		Key:   "age",
 		Op:    "=",
 		Value: 39,
@@ -83,7 +83,7 @@ func TestParserPBT(t *testing.T) {
 
 	properties.Property("query parameter", params.ForAll(func(val url.Values) bool {
 		p := NewParser("&")
-		conds := make([]*StringCondition, 0, len(val))
+		conds := make([]*String, 0, len(val))
 		for k := range val {
 			conds = append(conds, p.String(k, NewOpSet(Equal)))
 		}
