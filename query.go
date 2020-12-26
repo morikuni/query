@@ -106,6 +106,12 @@ func (p *Parser) Int64(key string, set OpSet) *Int64 {
 	return c
 }
 
+func (p *Parser) Int64Slice(key string, set OpSet) *Int64Slice {
+	c := new(Int64Slice)
+	p.Condition(key, set, c)
+	return c
+}
+
 type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
@@ -157,5 +163,28 @@ func (c *Int64) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = v
+	return nil
+}
+
+type Int64Slice struct {
+	Key   string
+	Op    Op
+	Value []int64
+}
+
+func (c *Int64Slice) Set(key string, op Op, text []byte) error {
+	values := bytes.Split(text, []byte(","))
+	is := make([]int64, len(values))
+	for i, v := range values {
+		iv, err := strconv.ParseInt(string(bytes.TrimSpace(v)), 10, 64)
+		if err != nil {
+			return err
+		}
+		is[i] = iv
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = is
 	return nil
 }
