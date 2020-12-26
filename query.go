@@ -31,6 +31,12 @@ type Parser struct {
 	conditions []parseCondition
 }
 
+type parseCondition struct {
+	key []byte
+	set OpSet
+	c   Condition
+}
+
 func NewParser(delimiter string) *Parser {
 	return &Parser{
 		[]byte(delimiter),
@@ -79,14 +85,18 @@ func (p *Parser) parseCondition(c []byte) error {
 
 func (p *Parser) String(key string, set OpSet) *StringCondition {
 	c := new(StringCondition)
-	p.condition(key, set, c)
+	p.Condition(key, set, c)
 	return c
 }
 
 func (p *Parser) StringSlice(key string, set OpSet) *StringSliceCondition {
 	c := new(StringSliceCondition)
-	p.condition(key, set, c)
+	p.Condition(key, set, c)
 	return c
+}
+
+func (p *Parser) Condition(key string, set OpSet, c Condition) {
+	p.conditions = append(p.conditions, parseCondition{[]byte(key), set, c})
 }
 
 type Condition interface {
@@ -123,14 +133,4 @@ func (c *StringSliceCondition) Set(key string, op Op, text []byte) error {
 	c.Op = op
 	c.Value = ss
 	return nil
-}
-
-func (p *Parser) condition(key string, set OpSet, c Condition) {
-	p.conditions = append(p.conditions, parseCondition{[]byte(key), set, c})
-}
-
-type parseCondition struct {
-	key []byte
-	set OpSet
-	c   Condition
 }
