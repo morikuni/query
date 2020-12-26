@@ -2,6 +2,7 @@ package query
 
 import (
 	"bytes"
+	"strconv"
 	"unicode"
 )
 
@@ -83,6 +84,10 @@ func (p *Parser) parseCondition(c []byte) error {
 	return nil
 }
 
+func (p *Parser) Condition(key string, set OpSet, c Condition) {
+	p.conditions = append(p.conditions, parseCondition{[]byte(key), set, c})
+}
+
 func (p *Parser) String(key string, set OpSet) *StringCondition {
 	c := new(StringCondition)
 	p.Condition(key, set, c)
@@ -95,8 +100,10 @@ func (p *Parser) StringSlice(key string, set OpSet) *StringSliceCondition {
 	return c
 }
 
-func (p *Parser) Condition(key string, set OpSet, c Condition) {
-	p.conditions = append(p.conditions, parseCondition{[]byte(key), set, c})
+func (p *Parser) Int64(key string, set OpSet) *Int64Condition {
+	c := new(Int64Condition)
+	p.Condition(key, set, c)
+	return c
 }
 
 type Condition interface {
@@ -132,5 +139,23 @@ func (c *StringSliceCondition) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = ss
+	return nil
+}
+
+type Int64Condition struct {
+	Key   string
+	Op    Op
+	Value int64
+}
+
+func (c *Int64Condition) Set(key string, op Op, text []byte) error {
+	v, err := strconv.ParseInt(string(text), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = v
 	return nil
 }

@@ -18,11 +18,13 @@ func TestParser(t *testing.T) {
 	nameCond := p.String("name", set)
 	idCond := p.String("id", set)
 	likeCond := p.StringSlice("like", set)
+	ageCond := p.Int64("age", set)
 
 	v := url.Values{}
 	v.Add("name", "hello")
 	v.Add("id", "world")
 	v.Add("like", "apple,orange, grape")
+	v.Add("age", "39")
 	q, err := url.QueryUnescape(v.Encode())
 	if err != nil {
 		t.Fatal(err)
@@ -46,6 +48,11 @@ func TestParser(t *testing.T) {
 		Key:   "like",
 		Op:    "=",
 		Value: []string{"apple", "orange", "grape"},
+	})
+	mustEqual(t, ageCond, &Int64Condition{
+		Key:   "age",
+		Op:    "=",
+		Value: 39,
 	})
 }
 
