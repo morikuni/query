@@ -126,6 +126,12 @@ func (p *Parser) Bool(key string, set OpSet) *Bool {
 	return c
 }
 
+func (p *Parser) Float64(key string, set OpSet) *Float64 {
+	c := new(Float64)
+	p.Condition(key, set, c)
+	return c
+}
+
 type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
@@ -241,5 +247,23 @@ func (c *Bool) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = ts
+	return nil
+}
+
+type Float64 struct {
+	Key   string
+	Op    Op
+	Value float64
+}
+
+func (c *Float64) Set(key string, op Op, text []byte) error {
+	v, err := strconv.ParseFloat(string(text), 64)
+	if err != nil {
+		return err
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = v
 	return nil
 }

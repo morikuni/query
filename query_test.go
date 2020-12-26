@@ -26,6 +26,7 @@ func TestParser(t *testing.T) {
 	}
 	ts := p.Timestamp("ts", set, jst)
 	b := p.Bool("bool", set)
+	f := p.Float64("float", set)
 
 	v := url.Values{}
 	v.Add("str", "hello")
@@ -34,6 +35,7 @@ func TestParser(t *testing.T) {
 	v.Add("numbers", "11, 22,33")
 	v.Add("ts", " 2020-12-26 14:20:33")
 	v.Add("bool", " true ")
+	v.Add("float", " 3.14 ")
 	q, err := url.QueryUnescape(v.Encode())
 	if err != nil {
 		t.Fatal(err)
@@ -73,6 +75,11 @@ func TestParser(t *testing.T) {
 		Key:   "bool",
 		Op:    Equal,
 		Value: true,
+	})
+	mustEqual(t, f, &Float64{
+		Key:   "float",
+		Op:    Equal,
+		Value: 3.14,
 	})
 }
 
