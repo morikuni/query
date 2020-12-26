@@ -3,6 +3,7 @@ package query
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/arbitrary"
@@ -20,13 +21,19 @@ func TestParser(t *testing.T) {
 	like := p.StringSlice("like", set)
 	age := p.Int64("age", set)
 	numbers := p.Int64Slice("numbers", set)
+	jst, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := p.Timestamp("ts", set, jst)
 
 	v := url.Values{}
 	v.Add("name", "hello")
 	v.Add("id", "world")
 	v.Add("like", "apple,orange, grape")
-	v.Add("age", "39")
+	v.Add("age", " 39")
 	v.Add("numbers", "11, 22,33")
+	v.Add("ts", "2020-12-26 14:20:33")
 	q, err := url.QueryUnescape(v.Encode())
 	if err != nil {
 		t.Fatal(err)
@@ -61,12 +68,24 @@ func TestParser(t *testing.T) {
 		Op:    Equal,
 		Value: []int64{11, 22, 33},
 	})
+	mustEqual(t, ts, &Timestamp{
+		Key:      "ts",
+		Op:       Equal,
+		Value:    time.Date(2020, 12, 26, 14, 20, 33, 0, jst),
+		Location: jst,
+	})
 }
 
 func mustEqual(tb testing.TB, got, want interface{}) {
 	tb.Helper()
 
-	if diff := cmp.Diff(want, got); diff != "" {
+	options := []cmp.Option{
+		cmp.Comparer(func(a, b time.Location) bool {
+			return a.String() == b.String()
+		}),
+	}
+
+	if diff := cmp.Diff(want, got, options...); diff != "" {
 		tb.Fatalf("(-want, +got)\n%s", diff)
 	}
 }

@@ -3,6 +3,7 @@ package query
 import (
 	"bytes"
 	"strconv"
+	"time"
 	"unicode"
 )
 
@@ -112,6 +113,13 @@ func (p *Parser) Int64Slice(key string, set OpSet) *Int64Slice {
 	return c
 }
 
+func (p *Parser) Timestamp(key string, set OpSet, loc *time.Location) *Timestamp {
+	c := new(Timestamp)
+	c.Location = loc
+	p.Condition(key, set, c)
+	return c
+}
+
 type Condition interface {
 	Set(key string, op Op, text []byte) error
 }
@@ -186,5 +194,28 @@ func (c *Int64Slice) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
 	c.Value = is
+	return nil
+}
+
+type Timestamp struct {
+	Key      string
+	Op       Op
+	Value    time.Time
+	Location *time.Location
+}
+
+func (c *Timestamp) Set(key string, op Op, text []byte) error {
+	loc := time.UTC
+	if c.Location != nil {
+		loc = c.Location
+	}
+	ts, err := time.ParseInLocation("2006-01-02 15:04:05", string(bytes.TrimSpace(text)), loc)
+	if err != nil {
+		return err
+	}
+
+	c.Key = key
+	c.Op = op
+	c.Value = ts
 	return nil
 }
