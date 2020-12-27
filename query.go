@@ -48,10 +48,10 @@ func NewParser(delimiter string) *Parser {
 
 func (p *Parser) Parse(query string) error {
 	text := []byte(query)
-	exprs := p.splitter.Split(text)
+	conds := p.splitter.Split(text)
 
-	for _, expr := range exprs {
-		err := p.parseCondition(expr)
+	for _, cond := range conds {
+		err := p.scanCondition(cond)
 		if err != nil {
 			return err
 		}
@@ -68,11 +68,42 @@ type delimiterSplitter struct {
 	delimiter []byte
 }
 
-func (s delimiterSplitter) Split(text []byte) [][]byte {
-	return bytes.Split(text, s.delimiter)
+func (s delimiterSplitter) Split(text []byte) (conds [][]byte) {
+	for len(text) != 0 {
+		idx := bytes.Index(text, s.delimiter)
+		if idx == -1 {
+			conds = append(conds, text)
+			return conds
+		}
+
+		var inQuote bool
+		for i := 0; i < len(text); i++ {
+			if i == idx && !inQuote {
+				conds = append(conds, text[:i])
+				text = text[i+1:]
+				break
+			}
+			switch text[i] {
+			case '"':
+				inQuote = !inQuote
+				if !inQuote {
+					idx = bytes.Index(text[i:], s.delimiter)
+					if idx == -1 {
+						conds = append(conds, text)
+						return conds
+					} else {
+						idx += i
+					}
+				}
+			case '\\':
+				i++
+			}
+		}
+	}
+	return conds
 }
 
-func (p *Parser) parseCondition(c []byte) error {
+func (p *Parser) scanCondition(c []byte) error {
 	c = bytes.TrimSpace(c)
 	for _, cond := range p.conditions {
 		c := c

@@ -97,6 +97,40 @@ func mustEqual(tb testing.TB, got, want interface{}) {
 	}
 }
 
+func TestDelimiterSplitter(t *testing.T) {
+	text := `
+a=\"a
+ b = b"
+"
+c = "ccc
+ccc\"
+ccc "
+"d"= d 
+`
+
+	s := delimiterSplitter{[]byte("\n")}
+	conds := s.Split([]byte(text))
+
+	toStrings := func(bs [][]byte) []string {
+		ss := make([]string, len(bs))
+		for i := range bs {
+			ss[i] = string(bs[i])
+		}
+		return ss
+	}
+
+	mustEqual(t, toStrings(conds), []string{
+		"",
+		`a=\"a`,
+		` b = b"
+"`,
+		`c = "ccc
+ccc\"
+ccc "`,
+		`"d"= d `,
+	})
+}
+
 func TestParserPBT(t *testing.T) {
 	params := arbitrary.DefaultArbitraries()
 	nonEmptyString := gen.AlphaString().SuchThat(func(s string) bool {
