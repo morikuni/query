@@ -52,7 +52,7 @@ func TestParser(t *testing.T) {
 	})
 	mustEqual(t, strs, &StringSlice{
 		Key:   "strs",
-		Op:    "=",
+		Op:    Equal,
 		Value: []string{"apple", "orange", "grape"},
 	})
 	mustEqual(t, number, &Int64{
@@ -110,9 +110,7 @@ func TestParserPBT(t *testing.T) {
 		return val
 	}))
 
-	setting := gopter.DefaultTestParameters()
-	setting.MinSuccessfulTests = 1000
-	properties := gopter.NewProperties(setting)
+	properties := gopter.NewProperties(nil)
 
 	properties.Property("query parameter", params.ForAll(func(val url.Values) bool {
 		p := NewParser("&")
