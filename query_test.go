@@ -13,9 +13,9 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	p := NewParser("&")
+	p := NewParser("\n")
 
-	set := NewOpSet("=")
+	set := NewOpSet(Equal, NotEqual, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual)
 	str := p.String("str", set)
 	strs := p.StringSlice("strs", set)
 	number := p.Int64("number", set)
@@ -28,18 +28,14 @@ func TestParser(t *testing.T) {
 	b := p.Bool("bool", set)
 	f := p.Float64("float", set)
 
-	v := url.Values{}
-	v.Add("str", "hello")
-	v.Add("strs", "apple,orange, grape")
-	v.Add("number", " 39")
-	v.Add("numbers", "11, 22,33")
-	v.Add("ts", " 2020-12-26 14:20:33")
-	v.Add("bool", " true ")
-	v.Add("float", " 3.14 ")
-	q, err := url.QueryUnescape(v.Encode())
-	if err != nil {
-		t.Fatal(err)
-	}
+	q := `
+str = hello
+strs < apple,orange, grape
+number<=39
+numbers >= 11, 22 ,33
+ts >2020-12-26 14:20:33
+bool!= true
+float=3.14 `
 	err = p.Parse(q)
 	if err != nil {
 		t.Fatal(err)
@@ -52,28 +48,28 @@ func TestParser(t *testing.T) {
 	})
 	mustEqual(t, strs, &StringSlice{
 		Key:   "strs",
-		Op:    Equal,
+		Op:    LessThan,
 		Value: []string{"apple", "orange", "grape"},
 	})
 	mustEqual(t, number, &Int64{
 		Key:   "number",
-		Op:    Equal,
+		Op:    LessThanOrEqual,
 		Value: 39,
 	})
 	mustEqual(t, numbers, &Int64Slice{
 		Key:   "numbers",
-		Op:    Equal,
+		Op:    GreaterThanOrEqual,
 		Value: []int64{11, 22, 33},
 	})
 	mustEqual(t, ts, &Timestamp{
 		Key:      "ts",
-		Op:       Equal,
+		Op:       GreaterThan,
 		Value:    time.Date(2020, 12, 26, 14, 20, 33, 0, jst),
 		Location: jst,
 	})
 	mustEqual(t, b, &Bool{
 		Key:   "bool",
-		Op:    Equal,
+		Op:    NotEqual,
 		Value: true,
 	})
 	mustEqual(t, f, &Float64{

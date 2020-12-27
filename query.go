@@ -2,6 +2,7 @@ package query
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"time"
 	"unicode"
@@ -16,6 +17,11 @@ func NewOpSet(ops ...Op) OpSet {
 	for _, op := range ops {
 		s = append(s, []byte(op))
 	}
+
+	// sort to make it to match "<=" before "<".
+	sort.Slice(s, func(i, j int) bool {
+		return len(s[i]) > len(s[j])
+	})
 	return s
 }
 
@@ -123,6 +129,7 @@ func (p *Parser) scanCondition(c []byte) error {
 			if err != nil {
 				return err
 			}
+			break
 		}
 	}
 	return nil
