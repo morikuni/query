@@ -29,7 +29,7 @@ const (
 )
 
 type Parser struct {
-	delimiter  []byte
+	splitter   splitter
 	conditions []parseCondition
 }
 
@@ -41,14 +41,14 @@ type parseCondition struct {
 
 func NewParser(delimiter string) *Parser {
 	return &Parser{
-		[]byte(delimiter),
+		delimiterSplitter{[]byte(delimiter)},
 		nil,
 	}
 }
 
 func (p *Parser) Parse(query string) error {
-	data := []byte(query)
-	exprs := bytes.Split(data, p.delimiter)
+	text := []byte(query)
+	exprs := p.splitter.Split(text)
 
 	for _, expr := range exprs {
 		err := p.parseCondition(expr)
@@ -58,6 +58,18 @@ func (p *Parser) Parse(query string) error {
 	}
 
 	return nil
+}
+
+type splitter interface {
+	Split(text []byte) [][]byte
+}
+
+type delimiterSplitter struct {
+	delimiter []byte
+}
+
+func (s delimiterSplitter) Split(text []byte) [][]byte {
+	return bytes.Split(text, s.delimiter)
 }
 
 func (p *Parser) parseCondition(c []byte) error {
