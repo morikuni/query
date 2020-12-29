@@ -29,8 +29,10 @@ func TestParser(t *testing.T) {
 	f := p.Float64("float", set)
 
 	q := `
-str = hello
-strs < apple,orange, grape
+str = "hello
+"
+strs < apple,"orange
+", grape
 number<=39
 numbers >= 11, 22 ,33
 ts >2020-12-26 14:20:33
@@ -44,12 +46,12 @@ float=3.14 `
 	mustEqual(t, str, &String{
 		Key:   "str",
 		Op:    Equal,
-		Value: "hello",
+		Value: "hello\n",
 	})
 	mustEqual(t, strs, &StringSlice{
 		Key:   "strs",
 		Op:    LessThan,
-		Value: []string{"apple", "orange", "grape"},
+		Value: []string{"apple", "orange\n", "grape"},
 	})
 	mustEqual(t, number, &Int64{
 		Key:   "number",

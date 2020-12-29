@@ -192,10 +192,28 @@ type String struct {
 	Value string
 }
 
+func unquote(text []byte) string {
+	n := len(text)
+	if n < 2 {
+		return string(text)
+	}
+
+	q := text[0]
+	if q != text[n-1] {
+		return string(text)
+	}
+
+	if q != '"' && q != '`' && q != '\'' {
+		return string(text)
+	}
+
+	return string(text[1 : n-1])
+}
+
 func (c *String) Set(key string, op Op, text []byte) error {
 	c.Key = key
 	c.Op = op
-	c.Value = string(text)
+	c.Value = unquote(text)
 	return nil
 }
 
@@ -209,7 +227,7 @@ func (c *StringSlice) Set(key string, op Op, text []byte) error {
 	values := bytes.Split(text, []byte(","))
 	ss := make([]string, len(values))
 	for i, v := range values {
-		ss[i] = string(bytes.TrimSpace(v))
+		ss[i] = unquote(bytes.TrimSpace(v))
 	}
 
 	c.Key = key
